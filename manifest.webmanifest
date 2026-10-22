@@ -1,0 +1,16 @@
+{
+  "name": "Trap Squad Tracker",
+  "short_name": "Trap Squads",
+  "description": "Squad sign-up and clay tracking for two trap fields. Works offline.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#1f3a2e",
+  "theme_color": "#1f3a2e",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

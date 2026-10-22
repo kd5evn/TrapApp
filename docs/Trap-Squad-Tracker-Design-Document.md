@@ -1,10 +1,10 @@
 # Trap Squad Tracker: iPad App Design Document
 
-Oct 21, 2026 · Draft v0.2
+Oct 21, 2026 · Draft v0.3
 
 ## 1. Overview and goals
 
-Trap Squad Tracker is an iPad app that lets club members and staff sign up for squads on two trap fields by dragging shooter names into squad posts, instead of using paper. Each field shows four squads in order: Shooting, On Deck, In The Hole and In The Deep Hole. When a squad finishes, one tap on Complete moves everyone up, and the app estimates how many clay targets that squad used and how many clays are left in the thrower.
+Trap Squad Tracker is an iPad web app, installed to the Home Screen and fully usable offline, that lets club members and staff sign up for squads on two trap fields by dragging shooter names into squad posts, instead of using paper. Each field shows four squads in order: Shooting, On Deck, In The Hole and In The Deep Hole. When a squad finishes, one tap on Complete moves everyone up, and the app estimates how many clay targets that squad used and how many clays are left in the thrower.
 
 Completed squads are kept as a history that can be reviewed for the day and exported to CSV.
 
@@ -46,7 +46,7 @@ v1 covers one club, one iPad and two fields; everything else waits.
 | Drag and drop into open posts | Score entry per target |
 | Mark squad complete, queue advances, day history with CSV export | Results, leaderboards, handicaps |
 | Estimated targets per squad and per day, clays loaded per field with a reset on refill | Inventory and billing of clay targets |
-| Local storage on the iPad | Multi-iPad sync, shooter-facing display |
+| Installable web app that works offline, with data stored on the iPad | Multi-iPad sync, shooter-facing display |
 
 ## 4. Screen layout
 
@@ -135,31 +135,31 @@ The center list is the single source of names for both fields, so a member or st
 
 ## 10. Technical approach
 
-The recommendation is a native iPad app in SwiftUI with on-device storage, because the core of the product is smooth drag and drop that works offline.
+The recommendation is an offline web app (PWA) for iPad Safari: no Mac or Apple developer account is needed, it installs from a web address to the Home Screen, and it keeps working with no Wi-Fi at the range.
 
 | Option | Fit | Trade-off |
 | --- | --- | --- |
-| Native SwiftUI app (recommended) | Best drag and drop feel, offline by default, works with Apple Pencil and gloves-friendly sizing | iPad only; needs TestFlight or App Store to install |
-| Web app (PWA) | Installable from a link, same code could run on other devices | Drag and touch behavior is less reliable on iPad Safari; offline needs extra care |
+| Offline web app (PWA), recommended | No Mac or paid Apple account needed; installs once from Safari, then runs offline from the iPad; can be tested in a browser during development | Drag and drop is less smooth than native, so every drag has a tap alternative; data lives in Safari storage, so CSV export is the backup |
+| Native SwiftUI app | Best drag and drop feel and offline by default | Needs a Mac with Xcode and a paid Apple developer account for TestFlight; a possible later step |
 | Cross-platform framework | One codebase if Android tablets matter | Extra layer for little gain while only iPad is in scope |
 
 **Planned building blocks**
 
-- SwiftUI for the layout, using the system drag and drop APIs for names and posts.
-- SwiftData (or Core Data) for the five entities in section 5, saved on every change.
-- One observable store that owns the queue rules (place, move, remove, complete, undo), kept separate from the views so the rules can be unit tested.
+- Plain HTML, CSS and JavaScript with no build step, using touch-friendly pointer events for dragging names and squads, plus tap alternatives; a service worker saves the app on the iPad so it opens with no network after one install; hosted free on GitHub Pages.
+- Browser storage on the iPad for the five entities in section 5, saved on every change, with CSV export as the backup.
+- One rules module that owns the queue rules (place, move, remove, reorder, complete, undo, clay count), kept separate from the screen so the rules can be unit tested.
 - Later: CloudKit or a small backend if two iPads must share one board; the model above already has ids that can sync.
 
-The app targets the current iPadOS version and is installed for the club through TestFlight.
+The app targets the current iPadOS version. To install, open its web address in Safari once while online and tap Add to Home Screen; after that it runs with no Wi-Fi. New versions arrive the next time the app is opened online.
 
 ## 11. Non-functional requirements
 
 - **Readability outdoors:** minimum 17 pt text for names, high-contrast light theme, and no information carried by color alone (taken versus open posts also differ by fill pattern or icon).
-- **Touch targets:** at least 44 pt, with extra space between posts so a drag lands where the finger is.
+- **Touch targets:** names in the shooter list are at least 44 pt tall; post rows are about 28 pt so four squads fit on one screen, and a drop lands on the post nearest the finger.
 - **Speed:** a drop, a Complete and an undo each update the screen with no visible delay.
-- **Reliability:** every change is saved immediately; force-quitting or running out of battery loses nothing.
-- **Offline:** no network is required for any v1 feature.
-- **Screen:** stays awake while the app is open, and a locked orientation option prevents accidental rotation.
+- **Reliability:** every change is saved immediately; force-quitting or running out of battery loses nothing. Data is kept in Safari storage on the iPad, and CSV export is the backup.
+- **Offline:** no network is required for any v1 feature once the app is installed.
+- **Screen:** asks the iPad to stay awake while the app is open (Screen Wake Lock); landscape is the primary layout.
 - **Privacy:** names stay on the device; there is no account or analytics in v1.
 
 ## 12. Decisions and open questions
@@ -173,11 +173,13 @@ Checked items are decisions from the first review and are reflected in the secti
 - [x] One iPad on the registration table, where members sign themselves and friends up; no login or PIN.
 - [x] A squad holds 1 to 5 shooters.
 - [x] Keep a history for the day, with CSV export.
-- [x] Run on the current iPadOS version and install through TestFlight.
+- [x] Build as an offline web app installed from Safari to the Home Screen, because the club has no Mac and no Apple developer account.
 - [x] No post rotation tracking; the app only gets shooters to the right post for the first round.
 - [x] Clear Roster clears both the shooter list and the day's history.
 - [x] When the clays run too low, every squad on that field turns red until Reset is selected.
 - [x] Members can reorder whole squads in a field's queue and also move shooters between squads.
+- [ ] How many clays does a full thrower hold? The Reset dialog starts with a placeholder of 400.
+- [ ] History groups by the calendar day on the iPad. Is that right, or should a day end at a set time?
 
 ## 13. Phased roadmap
 
@@ -185,8 +187,8 @@ The plan is to ship the full single-iPad board first, then editing tools, then m
 
 | Phase | Contents | Done when |
 | --- | --- | --- |
-| v1 | Two-field board, drag and drop, Add Shooter, Clear Roster, Complete and queue advance, target estimate, clay count with reset, day history with CSV export, undo, local save | Members run a full shoot day with it and no paper, and the club can export the day's squads to CSV |
-| v1.1 | Editable Game table, Rename and Archive shooters | The club can edit game target counts and retire shooters without a new release |
+| v1 | Two-field board, drag and drop, Add Shooter, Clear Roster, Complete and queue advance, target estimate, clay count with reset, day history with CSV export, undo, local save, offline install to the Home Screen, Rename and Archive shooters, editable game targets | Members run a full shoot day with it and no paper, and the club can export the day's squads to CSV |
+| v1.1 | Backup and restore of the roster and history as a file; optional native iPad app if the club later gets a Mac and an Apple developer account | The club can move its data to a new iPad without retyping it |
 | v2 | More fields, configurable squad size, second iPad sync, shooter-facing display | Two devices show the same board within a second or two |
 
 **Next step:** settle the open questions in section 12, then I can turn this into a screen-by-screen spec and a data schema before any code is written.

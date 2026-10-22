@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Trap Squads">
+  <meta name="theme-color" content="#1f3a2e">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <title>Trap Squad Tracker</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar" id="topbar"></header>
+    <main class="board">
+      <section class="field" id="field-0"></section>
+      <section class="roster" id="roster">
+        <h2>Shooters</h2>
+        <input id="search" type="search" placeholder="Search names" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="Search shooters">
+        <div class="list" id="list"></div>
+        <div class="rbtns">
+          <button class="primary big" data-act="add-shooter">Add Shooter</button>
+          <button class="quiet" data-act="clear-roster">Clear Roster</button>
+        </div>
+      </section>
+      <section class="field" id="field-1"></section>
+    </main>
+  </div>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <dialog id="dlg"></dialog>
+  <noscript>This app needs JavaScript.</noscript>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
