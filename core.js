@@ -323,6 +323,12 @@ export function clearRoster(state) {
   return ok();
 }
 
+// Clear History: completed squads only. The roster, squads and clays stay.
+export function clearHistory(state) {
+  state.history = [];
+  return ok();
+}
+
 // ---------- history ----------
 
 const pad = n => String(n).padStart(2, '0');

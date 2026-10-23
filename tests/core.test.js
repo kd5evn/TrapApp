@@ -296,3 +296,16 @@ test('setRefill sets the full-machine count without touching clays', () => {
   assert.equal(s.fields[0].clays, 120);
   assert.equal(c.setRefill(s, 0, 0).ok, false);
 });
+
+test('clearHistory erases history only', () => {
+  const s = c.createState();
+  const r = c.addShooter(s, 'Ann');
+  c.place(s, r.shooter.id, 0, 0, 0);
+  c.complete(s, 0);
+  c.place(s, r.shooter.id, 0, 0, 1);
+  assert.equal(s.history.length, 1);
+  c.clearHistory(s);
+  assert.equal(s.history.length, 0);
+  assert.equal(s.shooters.length, 1);
+  assert.equal(s.fields[0].squads[0].posts[1], r.shooter.id);
+});

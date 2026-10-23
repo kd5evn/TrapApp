@@ -232,6 +232,23 @@ function removeDialog(fi, si, pi) {
   });
 }
 
+function clearHistoryDialog() {
+  const n = state.history.length;
+  if (!n) { toast('History is already empty.'); return; }
+  openDialog(`<h3>Clear history?</h3>
+    <p>This erases all ${n} completed squad${n === 1 ? '' : 's'} from every day, including today's totals. Shooters, squads and clay counts stay. Export a CSV first if you want a copy. You can undo it right after.</p>
+    <div class="btns"><button data-d="cancel">Cancel</button><button class="danger" data-d="ok">Clear history</button></div>`, {
+    onOpen: d => {
+      d.querySelector('[data-d=cancel]').onclick = historyDialog;
+      d.querySelector('[data-d=ok]').onclick = () => {
+        act('clear-history', s => core.clearHistory(s));
+        closeDialog();
+        toast('History cleared.', true, 8000);
+      };
+    },
+  });
+}
+
 function clearRosterDialog() {
   openDialog(`<h3>Clear Roster?</h3>
     <p>This removes every shooter, empties all squads and erases the history. Clay counts and games stay. You can undo it right after.</p>
@@ -291,13 +308,14 @@ function historyDialog() {
     <div class="row"><label for="day">Day</label>
       <select id="day" style="width:auto">${(days.length ? days : [today]).map(d => `<option ${d === first ? 'selected' : ''}>${d}</option>`).join('')}</select></div>
     <div id="hbody">${draw(first)}</div>
-    <div class="btns"><button data-d="all">Export all (CSV)</button><button data-d="day">Export this day (CSV)</button><button class="primary" data-d="close">Close</button></div>`, {
+    <div class="btns"><button class="danger" data-d="clear">Clear history</button><button data-d="all">Export all (CSV)</button><button data-d="day">Export this day (CSV)</button><button class="primary" data-d="close">Close</button></div>`, {
     wide: true,
     onOpen: d => {
       const sel = d.querySelector('#day');
       sel.onchange = () => { d.querySelector('#hbody').innerHTML = draw(sel.value); };
       d.querySelector('[data-d=close]').onclick = closeDialog;
       d.querySelector('[data-d=day]').onclick = () => exportCsv(core.historyFor(state, sel.value), `trap-squads-${sel.value}.csv`);
+      d.querySelector('[data-d=clear]').onclick = clearHistoryDialog;
       d.querySelector('[data-d=all]').onclick = () => exportCsv(core.historyFor(state), 'trap-squads-all.csv');
     },
   });
