@@ -54,7 +54,7 @@ One landscape screen holds both fields with the shooter list between them, as in
 
 ![iPad landscape wireframe: 2 fields, 4 squads each, shared shooter list](wireframe.svg)
 
-- **Field header:** the field name and a game selector (Trap, Continental, Doubles) that carries over to the next squad. At the bottom of the panel, the clays loaded in the thrower with a Reset button; the count and every squad on that field turn red when the clays run too low, until Reset is selected.
+- **Field header:** the field name and a game selector (Trap, Continental, Doubles) that carries over to the next squad. At the bottom of the panel, the clays loaded in the thrower with a Reset button that restores the full-machine count in one tap, with no dialog; the count and every squad on that field turn red when the clays run too low, until Reset is selected.
 - **Squad order, top to bottom:** Shooting, On Deck, In The Hole, In The Deep Hole.
 - **Squad:** five posts listed top to bottom like a scoresheet, Post 1 to Post 5, each holding one name. A squad can run with one to five shooters. A taken post is filled; an open post is empty.
 - **Shooting squad:** highlighted, and carries the green Complete button from your sketch.
@@ -66,13 +66,13 @@ Five entities are enough for v1. A shooter can be in several squads at once, on 
 
 | Entity | Key fields | Rules |
 | --- | --- | --- |
-| Field | id, name (Trap 1, Trap 2), current game, clays loaded in the thrower | Exactly two in v1; owns an ordered queue of squads; the game carries over to the next squad; the clay count can be reset at any time when the machine is refilled |
+| Field | id, name (Trap 1, Trap 2), current game, clays loaded in the thrower | Exactly two in v1; owns an ordered queue of squads; the game carries over to the next squad; the clay count can be reset at any time, in one tap, to the full-machine count set in Settings |
 | Squad | id, field, queue position (0 to 3), game, status, start time, end time, estimated targets | Position 0 is Shooting, 1 On Deck, 2 In The Hole, 3 In The Deep Hole; holds one to five shooters; the estimate uses the field's game when the squad completes |
 | Post slot | squad, post number (1 to 5), shooter (optional) | One shooter per slot; a slot with a shooter is full and rejects drops; the same shooter cannot take two posts in one squad |
 | Shooter | id, display name, active flag | Always in the center list; can be placed in many squads, but not twice in the same squad |
 | Game | name, targets per shooter, notes | Trap, Continental, Doubles; editable table, see section 8 |
 
-**Squad status** is one of Queued, Shooting or Complete. Completed squads are kept as history (field, game, shooters, estimated targets, time) so the day's totals can be reported and exported to CSV. Clear Roster erases this history along with the shooter list.
+**Squad status** is one of Queued, Shooting or Complete. Completed squads are kept as history (field, game, shooters, estimated targets, time) so the day's totals can be reported and exported to CSV. Clear Roster erases this history along with the shooter list, and Clear history in the History window erases it alone after one confirmation; both can be undone right afterwards.
 
 ## 6. Interaction design
 
@@ -119,7 +119,7 @@ Here n is the number of shooters in the squad, t is the targets per shooter for 
 | Doubles | 50 (25 pairs) | Confirmed |
 | Continental | 25 (one round of singles) | Confirmed |
 
-These values live in an editable Game table inside the app, so the club can change them without a new release. Because the app estimates rather than counts, it does not know about misses, no-birds or squads that stop early; the optional allowance is the only adjustment. Each field also has an editable clay count: the number of clays loaded in its thrower. Completing a squad subtracts its estimated targets from that count. When the remaining clays cannot cover the next squad's full round, the count and every squad on that field turn red, and they stay red until Reset is selected. A Reset button sets the count again whenever the machine is refilled, and it is available at any time.
+These values live in an editable Game table inside the app, so the club can change them without a new release. Because the app estimates rather than counts, it does not know about misses, no-birds or squads that stop early; the optional allowance is the only adjustment. Each field also has an editable clay count: the number of clays loaded in its thrower. Completing a squad subtracts its estimated targets from that count. When the remaining clays cannot cover the next squad's full round, the count and every squad on that field turn red, and they stay red until Reset is selected. A Reset button sets the count back to the full-machine count in one tap, with no dialog, whenever the machine is refilled, and it is available at any time. The full-machine count is set for each field in Settings, and Undo reverses a Reset.
 
 **Where it shows:** on the squad when it completes, as a running total per field, as a day total for ordering clay targets, and as the clays left in each thrower.
 
@@ -177,8 +177,10 @@ Checked items are decisions from the first review and are reflected in the secti
 - [x] No post rotation tracking; the app only gets shooters to the right post for the first round.
 - [x] Clear Roster clears both the shooter list and the day's history.
 - [x] When the clays run too low, every squad on that field turns red until Reset is selected.
+- [x] Reset restores each field's full-machine count in one tap with no dialog, and that count is edited in Settings.
+- [x] The History window has a Clear history button that erases all days after one confirmation, leaving the roster, squads and clay counts alone.
 - [x] Members can reorder whole squads in a field's queue and also move shooters between squads.
-- [ ] How many clays does a full thrower hold? The Reset dialog starts with a placeholder of 400.
+- [ ] How many clays does a full thrower hold? Reset restores a placeholder of 400 until the real count is entered in Settings.
 - [ ] History groups by the calendar day on the iPad. Is that right, or should a day end at a set time?
 
 ## 13. Phased roadmap
@@ -187,7 +189,7 @@ The plan is to ship the full single-iPad board first, then editing tools, then m
 
 | Phase | Contents | Done when |
 | --- | --- | --- |
-| v1 | Two-field board, drag and drop, Add Shooter, Clear Roster, Complete and queue advance, target estimate, clay count with reset, day history with CSV export, undo, local save, offline install to the Home Screen, Rename and Archive shooters, editable game targets | Members run a full shoot day with it and no paper, and the club can export the day's squads to CSV |
+| v1 | Two-field board, drag and drop, Add Shooter, Clear Roster, Complete and queue advance, target estimate, clay count with one-tap reset and a full-machine count in Settings, day history with CSV export and Clear history, undo, local save, offline install to the Home Screen, Rename and Archive shooters, editable game targets | Members run a full shoot day with it and no paper, and the club can export the day's squads to CSV |
 | v1.1 | Backup and restore of the roster and history as a file; optional native iPad app if the club later gets a Mac and an Apple developer account | The club can move its data to a new iPad without retyping it |
 | v2 | More fields, configurable squad size, second iPad sync, shooter-facing display | Two devices show the same board within a second or two |
 
