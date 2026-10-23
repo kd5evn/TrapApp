@@ -287,3 +287,12 @@ test('normalize repairs loaded data', () => {
   assert.equal(s.targets.Doubles, 40);
   assert.equal(c.normalize(null).fields.length, 2);
 });
+
+test('setRefill sets the full-machine count without touching clays', () => {
+  const s = c.createState();
+  c.setClays(s, 0, 120);
+  assert.equal(c.setRefill(s, 0, 300).ok, true);
+  assert.equal(s.fields[0].refill, 300);
+  assert.equal(s.fields[0].clays, 120);
+  assert.equal(c.setRefill(s, 0, 0).ok, false);
+});

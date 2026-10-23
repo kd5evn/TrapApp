@@ -233,6 +233,15 @@ export function resetClays(state, fi, amount) {
   return ok({ clays: n });
 }
 
+export function setRefill(state, fi, value) {
+  const f = state.fields[fi];
+  if (!f) return fail('bad-field');
+  const n = Math.round(Number(value));
+  if (!Number.isFinite(n) || n < 1 || n > 100000) return fail('bad-number');
+  f.refill = n;
+  return ok();
+}
+
 // ---------- complete ----------
 
 export function complete(state, fi, now = Date.now()) {

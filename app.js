@@ -232,26 +232,6 @@ function removeDialog(fi, si, pi) {
   });
 }
 
-function resetDialog(fi) {
-  const f = state.fields[fi];
-  openDialog(`<h3>Reset clays: ${esc(f.name)}</h3>
-    <p>Enter how many clays are loaded now. This clears the red warning.</p>
-    <input type="number" inputmode="numeric" id="amt" value="${f.refill}" min="1">
-    <div class="err" id="err"></div>
-    <div class="btns"><button data-d="cancel">Cancel</button><button class="primary" data-d="ok">Reset</button></div>`, {
-    onOpen: d => {
-      const submit = () => {
-        const res = act('reset', s => core.resetClays(s, fi, d.querySelector('#amt').value));
-        if (!res.ok) d.querySelector('#err').textContent = why(res.reason); else closeDialog();
-      };
-      d.querySelector('[data-d=cancel]').onclick = closeDialog;
-      d.querySelector('[data-d=ok]').onclick = submit;
-      d.querySelector('#amt').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); submit(); } });
-      setTimeout(() => { const a = d.querySelector('#amt'); a.focus(); a.select(); }, 50);
-    },
-  });
-}
-
 function clearRosterDialog() {
   openDialog(`<h3>Clear Roster?</h3>
     <p>This removes every shooter, empties all squads and erases the history. Clay counts and games stay. You can undo it right after.</p>
@@ -272,6 +252,8 @@ function settingsDialog() {
   openDialog(`<h3>Settings</h3>
     <p>Clays used per shooter for each game:</p>
     ${GAMES.map(g => `<div class="row"><label for="t-${g}">${g}</label><input type="number" inputmode="numeric" id="t-${g}" value="${state.targets[g]}" min="1"></div>`).join('')}
+    <p>Clays in a full machine (what Reset sets):</p>
+    ${state.fields.map((f, i) => `<div class="row"><label for="r-${i}">${esc(f.name)}</label><input type="number" inputmode="numeric" id="r-${i}" value="${f.refill}" min="1"></div>`).join('')}
     <div class="row"><label for="al">Extra clays for re-throws (%)</label><input type="number" inputmode="decimal" id="al" value="${state.allowance}" min="0" max="100"></div>
     <div class="err" id="err"></div>
     <div class="btns"><button data-d="cancel">Cancel</button><button class="primary" data-d="ok">Save</button></div>`, {
@@ -280,6 +262,7 @@ function settingsDialog() {
       d.querySelector('[data-d=ok]').onclick = () => {
         const res = act('settings', s => {
           for (const g of GAMES) { const r = core.setTarget(s, g, d.querySelector(`#t-${g}`).value); if (!r.ok) return r; }
+          for (let i = 0; i < s.fields.length; i++) { const r = core.setRefill(s, i, d.querySelector(`#r-${i}`).value); if (!r.ok) return r; }
           return core.setAllowance(s, d.querySelector('#al').value);
         });
         if (!res.ok) d.querySelector('#err').textContent = why(res.reason); else closeDialog();
@@ -391,7 +374,12 @@ document.addEventListener('click', e => {
       case 'add-shooter': addShooterDialog(); break;
       case 'clear-roster': clearRosterDialog(); break;
       case 'complete': doComplete(fi); break;
-      case 'reset': resetDialog(fi); break;
+      case 'reset': {
+        const amt = state.fields[fi].refill;
+        const res = act('reset', s => core.resetClays(s, fi, amt));
+        if (res.ok) toast(`${state.fields[fi].name} reset to ${amt} clays.`, true, 6000);
+        break;
+      }
       case 'up': act('reorder', s => core.reorderSquad(s, fi, si, si - 1)); break;
       case 'down': act('reorder', s => core.reorderSquad(s, fi, si, si + 1)); break;
     }
