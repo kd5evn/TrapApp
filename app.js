@@ -594,6 +594,11 @@ setInterval(() => { if (!drag && !dlg.open) renderTop(); }, 60000);
 document.addEventListener('gesturestart', e => e.preventDefault());
 
 if ('serviceWorker' in navigator) {
+  // When an updated copy takes over, reload once so the new screen shows at once.
+  const hadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (hadController && !drag && !dlg.open) location.reload();
+  });
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }
 
