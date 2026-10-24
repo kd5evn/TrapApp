@@ -1,6 +1,6 @@
 // Offline shell: everything the app needs is cached on first load.
 // Bump VERSION whenever any app file changes so devices pick up the update.
-const VERSION = 'trapapp-v4';
+const VERSION = 'trapapp-v5';
 const SHELL = [
   './', 'index.html', 'styles.css', 'app.js', 'core.js', 'manifest.webmanifest',
   'icons/icon.svg', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png',

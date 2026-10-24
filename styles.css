@@ -169,3 +169,5 @@ td.num, th.num { text-align: right; }
   .rbtns { grid-column: 1 / 3; grid-auto-flow: column; }
   #field-0 { grid-column: 1; grid-row: 1; } #field-1 { grid-column: 2; grid-row: 1; }
 }
+
+.topbar button.on { background: #2f8f5b; border-color: #9fe0bb; }

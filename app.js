@@ -77,6 +77,7 @@ function renderTop() {
     : `<div class="status">Today: ${tot.squads} squad${tot.squads === 1 ? '' : 's'}, about ${tot.targets} clays</div>`;
   $('#topbar').innerHTML = `
     <h1>Trap Squad Tracker</h1>${status}
+    <button data-act="awake" class="${awakeWanted && wake ? 'on' : ''}" aria-pressed="${awakeWanted}">Screen: ${awakeWanted ? (wake ? 'stays on' : 'wake on') : 'auto-lock'}</button>
     <button data-act="undo" ${undo.size ? '' : 'disabled'}>Undo</button>
     <button data-act="history">History</button>
     <button data-act="settings">Settings</button>`;
@@ -386,6 +387,7 @@ document.addEventListener('click', e => {
     const fi = Number(btn.dataset.f), si = Number(btn.dataset.s);
     switch (btn.dataset.act) {
       case 'undo': doUndo(); break;
+      case 'awake': toggleAwake(); break;
       case 'history': historyDialog(); break;
       case 'settings': settingsDialog(); break;
       case 'deselect': selected = null; render(); break;
@@ -580,10 +582,39 @@ window.addEventListener('pointercancel', e => {
 // ---------- keep the screen awake, keep the data ----------
 
 let wake = null;
+let awakeWanted = true;
+try { awakeWanted = localStorage.getItem('trapapp.awake') !== 'off'; } catch (e) { /* default on */ }
+const wakeSupported = 'wakeLock' in navigator;
+
 async function keepAwake() {
-  try { if ('wakeLock' in navigator && document.visibilityState === 'visible') wake = await navigator.wakeLock.request('screen'); } catch (e) { /* not available */ }
+  if (!awakeWanted || !wakeSupported || document.visibilityState !== 'visible') return;
+  try {
+    wake = await navigator.wakeLock.request('screen');
+    wake.addEventListener('release', () => { wake = null; renderTop(); });
+  } catch (e) { wake = null; }
+  renderTop();
+}
+async function releaseAwake() {
+  try { if (wake) await wake.release(); } catch (e) { /* ignore */ }
+  wake = null;
+}
+async function toggleAwake() {
+  awakeWanted = !awakeWanted;
+  try { localStorage.setItem('trapapp.awake', awakeWanted ? 'on' : 'off'); } catch (e) { /* ignore */ }
+  if (awakeWanted) {
+    await keepAwake();
+    if (!wakeSupported) toast('This iPad cannot keep the screen on from the app. Set Settings, Display & Brightness, Auto-Lock to Never.', false, 9000);
+    else if (!wake) toast('Could not keep the screen on. Try again, or set Auto-Lock to Never in iPad Settings.', false, 7000);
+    else toast('Screen will stay on while the app is open.');
+  } else {
+    await releaseAwake();
+    toast('Screen will auto-lock as usual.');
+  }
+  renderTop();
 }
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') keepAwake(); });
+// Safari only grants the lock after a touch, so try again on the first one.
+document.addEventListener('pointerdown', () => { if (awakeWanted && !wake) keepAwake(); }, { passive: true });
 keepAwake();
 if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
 
